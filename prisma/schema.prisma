@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Recipe {
+  id                  String   @id @default(cuid())
+  slug                String   @unique
+  title               String
+  description         String?
+  ingredients         Json
+  instructions        String
+  yield               String?
+  processingTime      String?
+  headspace           String?
+  altitudeAdjustment  String?
+  isTestedSafe        Boolean  @default(false)
+  safetyNotes         String?
+  preservationMethod  PreservationMethod[]
+  season              Season[]
+  authorId            String
+  author              User     @relation(fields: [authorId], references: [id])
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  forkOfId            String?
+  forkOf              Recipe?  @relation("RecipeForks", fields: [forkOfId], references: [id])
+  forks               Recipe[] @relation("RecipeForks")
+  images              String[] @default([])
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  recipes   Recipe[]
+  createdAt DateTime  @default(now())
+}
+
+model Session {
+  id           String   @id
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  provider          String
+  providerAccountId String
+  user              User    @relation(fields: [userId], references: [id])
+  @@unique([provider, providerAccountId])
+}
+
+enum PreservationMethod {
+  WATER_BATH
+  PRESSURE_CAN
+  FERMENTATION
+  DEHYDRATION
+  FREEZING
+  SMOKING
+  SALT_CURE
+  ROOT_CELLAR
+  NONE
+}
+
+enum Season {
+  SPRING
+  SUMMER
+  FALL
+  WINTER
+}
